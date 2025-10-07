@@ -104,23 +104,19 @@
 
   @media (max-width:760px){
   /* Prevent long names from squeezing the flat badge */
-  .card .name {
-    font-size: 15px;             /* slightly smaller text */
-    flex: 1;                     /* allow it to take available width */
-    white-space: normal;         /* wrap onto next line */
-    word-break: break-word;      /* break long continuous words */
-    line-height: 1.3;
-  }
-
-  .card .badge {
-    flex-shrink: 0;              /* keeps flat number visible */
-    font-size: 14px;
-    padding: 4px 8px;            /* slightly compact badge */
-  }
-
-  .card .row {
-    align-items: flex-start;     /* aligns multi-line names nicely */
-  }
+  /* Make name tappable and show a hidden "Old Flat" row */
+.card .name{
+  cursor: pointer;
+  font-size: 15px;        /* keep compact */
+  line-height: 1.3;
+}
+.card .old{
+  display: none;
+  margin-top: 6px;
+  color: #6b7280;         /* muted */
+  font-size: 13px;
+}
+.card .old.show{ display: block; }
 }
 
 
@@ -182,7 +178,7 @@
         </div>
         <div class="field">
           <label for="newFlatFilter">New Flat</label>
-          <input id="newFlatFilter" placeholder="e.g. D-602">
+          <input id="newFlatFilter" placeholder="e.g. E-504">
         </div>
       </div>
     </details>
@@ -454,6 +450,27 @@
       scrollResultsIntoView(); // “go down” behaviour
     });
 
+
+    // Toggle old flat on name tap/click (mobile-friendly + accessible)
+els.cards.addEventListener('click', (e)=>{
+  const nameEl = e.target.closest('.name');
+  if(!nameEl) return;
+  const card = nameEl.closest('.card');
+  const old = card.querySelector('.old');
+  if(!old) return;
+  const show = !old.classList.contains('show');
+  old.classList.toggle('show', show);
+  nameEl.setAttribute('aria-expanded', show ? 'true' : 'false');
+});
+
+// Keyboard support (Enter/Space) for accessibility
+els.cards.addEventListener('keydown', (e)=>{
+  if((e.key === 'Enter' || e.key === ' ') && e.target.classList.contains('name')){
+    e.preventDefault();
+    e.target.click();
+  }
+});
+
     els.floor.addEventListener('change',()=>{ filterData(); scrollResultsIntoView(); });
     els.flat.addEventListener('input',debounce(()=>filterData(),200));
     els.name.addEventListener('input',debounce(()=>filterData(),200));
@@ -557,11 +574,15 @@
       for(const r of rows){
         const card = document.createElement('div');
         card.className='card';
-        card.innerHTML = `
-          <div class="row">
-            <div class="name">${mark(safe(r.Members_name||''), name)}</div>
-            <div class="badge">${mark(safe(r.New_Flat_No||''), newFlat) || '-'}</div>
-          </div>`;
+       card.innerHTML = `
+  <div class="row">
+    <div class="name" tabindex="0" role="button" aria-expanded="false" aria-label="Show old flat">
+      ${mark(safe(r.Members_name||''), name)}
+    </div>
+    <div class="badge">${mark(safe(r.New_Flat_No||''), newFlat) || '-'}</div>
+  </div>
+  <div class="old">Old Flat: ${mark(safe(r.Old_Flat_No||''), oldFlat) || '-'}</div>
+`;
         els.cards.appendChild(card);
       }
     }
