@@ -103,22 +103,43 @@
   }
 
   @media (max-width:760px){
-  /* Prevent long names from squeezing the flat badge */
-  /* Make name tappable and show a hidden "Old Flat" row */
-.card .name{
-  cursor: pointer;
-  font-size: 15px;        /* keep compact */
-  line-height: 1.3;
+   .card .row{
+    display: flex;
+    align-items: flex-start;   /* prevents badge from dropping */
+    gap: 10px;
+  }
+
+  /* Name takes remaining space, max two lines, won't push badge */
+  .card .name{
+    flex: 1 1 auto;
+    min-width: 0;              /* enables proper flex truncation */
+    display: -webkit-box;      /* 2-line clamp */
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    word-break: break-word;
+    line-height: 1.3;
+  }
+
+  /* Keep flat number in one line, never wrap */
+  .card .badge{
+    flex: 0 0 auto;            /* fixed width by content */
+    white-space: nowrap;       /* prevents split into next line */
+    max-width: 48%;            /* safety cap if screen is ultra-narrow */
+    text-overflow: ellipsis;
+    overflow: hidden;
+  }
+
+/* Ensure old flat stays hidden until .show is added */
+.card .old {
+  display: none !important;
 }
-.card .old{
-  display: none;
-  margin-top: 6px;
-  color: #6b7280;         /* muted */
-  font-size: 13px;
+
+.card .old.show {
+  display: block !important;
 }
 
 }
-
 
   /* Drawer (neighbours) */
   .drawer{position:fixed;inset:0 0 0 auto;width:min(420px,92vw);background:#fff;box-shadow:-24px 0 40px rgba(0,0,0,.12);
