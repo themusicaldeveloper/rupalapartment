@@ -492,7 +492,8 @@
     if(newFlat) rows = rows.filter(d=>(d.New_Flat_No||'').toLowerCase().includes(newFlat));
 
     // Sort by Flat number numerically (1,2,3,4…)
-    rows.sort((a,b)=> (parseInt(a.Flat,10)||0) - (parseInt(b.Flat,10)||0));
+    //rows.sort((a,b)=> (parseInt(a.Flat,10)||0) - (parseInt(b.Flat,10)||0));
+    rows = sortByBlockFloorFlat(rows);
 
     displayData(rows, { highlight:{name,oldFlat,newFlat} });
     updateChips(rows, block);
@@ -515,13 +516,27 @@
     els.chipCount.style.display=''; els.chipCount.textContent=`${rows.length} record${rows.length===1?'':'s'}`;
   }
 
+
+  function sortByBlockFloorFlat(rows) {
+  const blockOrder = ["A", "B", "C", "D", "E"];
+  return rows.sort((a, b) => {
+    const blockDiff = blockOrder.indexOf(a.Block) - blockOrder.indexOf(b.Block);
+    if (blockDiff !== 0) return blockDiff;
+    const floorDiff = (parseInt(a.Floor) || 0) - (parseInt(b.Floor) || 0);
+    if (floorDiff !== 0) return floorDiff;
+    return (parseInt(a.Flat) || 0) - (parseInt(b.Flat) || 0);
+    });
+  }
+
+
   function displayData(rows, opts={}){
     const {highlight={}} = opts;
     const {name,oldFlat,newFlat} = highlight;
 
+    
     // Desktop table
     els.tableBody.innerHTML='';
-    for(const r of rows){
+    for(const r of sortByBlockFloorFlat(rows)){
       const tr = document.createElement('tr');
       tr.innerHTML = `
         <td class="muted">${safe(r.Sr_No)}</td>
