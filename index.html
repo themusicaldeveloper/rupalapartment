@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>🏘️ Society Neighbour Finder</title>
+  <style>
+    body {
+      font-family: "Segoe UI", Arial, sans-serif;
+      background: #eef3f8;
+      margin: 0;
+      padding: 30px;
+      color: #333;
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 25px;
+      color: #004aad;
+      letter-spacing: 1px;
+    }
+
+    .filter-box {
+      background: #fff;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 3px 8px rgba(0,0,0,0.1);
+      margin-bottom: 25px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 15px;
+      justify-content: center;
+    }
+
+    label {
+      font-weight: 600;
+      margin-right: 5px;
+    }
+
+    select, input, button {
+      padding: 8px 12px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-size: 14px;
+      outline: none;
+    }
+
+    select:focus, input:focus {
+      border-color: #0078d7;
+      box-shadow: 0 0 4px rgba(0,120,215,0.4);
+    }
+
+    button {
+      background: #0078d7;
+      color: #fff;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      border: none;
+      font-weight: 600;
+    }
+
+    button:hover {
+      background: #005fa3;
+    }
+
+    .reset-btn {
+      background: #f44336;
+    }
+
+    .reset-btn:hover {
+      background: #c62828;
+    }
+
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      background: #fff;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 3px 8px rgba(0,0,0,0.1);
+    }
+
+    th, td {
+      border-bottom: 1px solid #eee;
+      padding: 10px 12px;
+      text-align: left;
+      font-size: 15px;
+    }
+
+    th {
+      background: #0078d7;
+      color: white;
+    }
+
+    tr:hover {
+      background: #f9f9f9;
+    }
+
+    #noData {
+      text-align: center;
+      margin-top: 10px;
+      color: #777;
+      font-style: italic;
+    }
+
+    @media (max-width: 768px) {
+      .filter-box { flex-direction: column; align-items: stretch; }
+      table, th, td { font-size: 13px; }
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🏠 Dynamic Rupal Neighbour Finder</h1>
+
+  <div class="filter-box">
+    <div>
+      <label>Block:</label>
+      <select id="blockFilter"><option value="">-- All --</option></select>
+    </div>
+    <div>
+      <label>Floor:</label>
+      <select id="floorFilter"><option value="">-- All --</option></select>
+    </div>
+    <div>
+      <label>Flat:</label>
+      <input type="text" id="flatFilter" placeholder="e.g. 04" />
+    </div>
+    <div>
+      <label>Name:</label>
+      <input type="text" id="nameFilter" placeholder="Search name..." />
+    </div>
+    <div>
+      <label>Old Flat:</label>
+      <input type="text" id="oldFlatFilter" placeholder="e.g. B-22" />
+    </div>
+    <div>
+      <label>New Flat:</label>
+      <input type="text" id="newFlatFilter" placeholder="e.g. D-602" />
+    </div>
+    <div>
+      <button onclick="filterData()">🔍 Search</button>
+      <button class="reset-btn" onclick="resetFilters()">Reset</button>
+    </div>
+  </div>
+
+  <table id="resultTable">
+    <thead>
+      <tr>
+        <th>Sr_No</th>
+        <th>Block</th>
+        <th>Floor</th>
+        <th>Flat</th>
+        <th>Member Name</th>
+        <th>Old Flat No</th>
+        <th>New Flat No</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <p id="noData" style="display:none;">No matching records found.</p>
+
+  <script>
+    // --- Example sample data (replace with your full dataset JSON)
+       // --- Example sample data (replace with your full dataset JSON)
+    const data = [
+      {Sr_No:1,Block_No:1,Old_Flat_No:"B-25 ",Members_name:"Dineshkumar Jayantiprasad Merchant ",New_Flat_No:"C-403",Block:"C",Floor:4,Flat:"03"},
+{Sr_No:2,Block_No:1,Old_Flat_No:"B-26 ",Members_name:"Shilpaben Shaileshkumar Leuva ",New_Flat_No:"B-903",Block:"B",Floor:9,Flat:"03"},
+{Sr_No:3,Block_No:1,Old_Flat_No:"B-27 ",Members_name:"Ramanikbhai Nathubhai Vaghela ",New_Flat_No:"C-604",Block:"C",Floor:6,Flat:"04"},
+{Sr_No:4,Block_No:1,Old_Flat_No:"B-28 ",Members_name:"Sanjiv Hasmukhbhai Panchal ",New_Flat_No:"B-1001",Block:"B",Floor:10,Flat:"01"},
+{Sr_No:5,Block_No:1,Old_Flat_No:"B-29 ",Members_name:"Kirtiben Manubhai Patel ( Wife of Jayeshbhai Patel) & Kiranben Manubhai Patel ",New_Flat_No:"C-903",Block:"C",Floor:9,Flat:"03"},
+{Sr_No:6,Block_No:1,Old_Flat_No:"B-30 ",Members_name:"Kantaben Chimanlal Raval ",New_Flat_No:"C-401",Block:"C",Floor:4,Flat:"01"},
+{Sr_No:7,Block_No:1,Old_Flat_No:"B-31 ",Members_name:"Nareshbhai Valjibhai Solanki ",New_Flat_No:"B-404",Block:"B",Floor:4,Flat:"04"},
+{Sr_No:8,Block_No:1,Old_Flat_No:"B-32 ",Members_name:"Ravi Rajendrakumar Upadhyay ",New_Flat_No:"B-602",Block:"B",Floor:6,Flat:"02"},
+{Sr_No:9,Block_No:1,Old_Flat_No:"B-33 ",Members_name:"Vinaychandra Chaturdas Panchal ",New_Flat_No:"A-404",Block:"A",Floor:4,Flat:"04"},
+{Sr_No:10,Block_No:1,Old_Flat_No:"B-34 ",Members_name:"Jayashreeben Hemantbhai Shah ",New_Flat_No:"E-104",Block:"E",Floor:1,Flat:"04"},
+{Sr_No:11,Block_No:1,Old_Flat_No:"B-35 ",Members_name:"Aniruddhsinh Dilawarsinh Chudasma & Pravinsinh Dilawarsinh Chudasma ",New_Flat_No:"D-304",Block:"D",Floor:3,Flat:"04"},
+{Sr_No:12,Block_No:1,Old_Flat_No:"B-36 ",Members_name:"Gulab Vitthal Kamble ",New_Flat_No:"B-1003",Block:"B",Floor:10,Flat:"03"},
+{Sr_No:13,Block_No:2,Old_Flat_No:"A-13 ",Members_name:"Jagdishchandra Gordhandas Patel & Bharatbhai Gordhandas Patel & Gautamkumar Gordhandas Patel & Prafulbhai Gordhandas Patel ",New_Flat_No:"A-904",Block:"A",Floor:9,Flat:"04"},
+{Sr_No:14,Block_No:2,Old_Flat_No:"A-14 ",Members_name:"Sudesh Dharamvir Sharma ",New_Flat_No:"A-301",Block:"A",Floor:3,Flat:"01"},
+{Sr_No:15,Block_No:2,Old_Flat_No:"A-15 ",Members_name:"Dharamvir Nanakdev Sharma ",New_Flat_No:"C-301",Block:"C",Floor:3,Flat:"01"},
+{Sr_No:16,Block_No:2,Old_Flat_No:"A-16 ",Members_name:"Baldevbhai Bhagvandas Patel ",New_Flat_No:"A-601",Block:"A",Floor:6,Flat:"01"},
+{Sr_No:17,Block_No:2,Old_Flat_No:"A-17 ",Members_name:"Smt. Manjudevi Mularam Joshi ",New_Flat_No:"D-202",Block:"D",Floor:2,Flat:"02"},
+{Sr_No:18,Block_No:2,Old_Flat_No:"A-18 ",Members_name:"Varshaben Yogeshkumar Panchal ",New_Flat_No:"C-1004",Block:"C",Floor:10,Flat:"04"},
+{Sr_No:19,Block_No:2,Old_Flat_No:"A-19 ",Members_name:"Varshaben Dilipbhai Panchal ",New_Flat_No:"D-104",Block:"D",Floor:1,Flat:"04"},
+{Sr_No:20,Block_No:2,Old_Flat_No:"A-20 ",Members_name:"Rameshchandra Laljibhai Somaiya ",New_Flat_No:"D-201",Block:"D",Floor:2,Flat:"01"},
+{Sr_No:21,Block_No:2,Old_Flat_No:"A-21 ",Members_name:"Ramanlal Manilal Panchal ",New_Flat_No:"A-304",Block:"A",Floor:3,Flat:"04"},
+{Sr_No:22,Block_No:2,Old_Flat_No:"A-22 ",Members_name:"Knataben Dashrathbhai Panchal ",New_Flat_No:"A-604",Block:"A",Floor:6,Flat:"04"},
+{Sr_No:23,Block_No:2,Old_Flat_No:"A-23 ",Members_name:"Navnitbhai Gopaldas Modi ",New_Flat_No:"D-703",Block:"D",Floor:7,Flat:"03"},
+{Sr_No:24,Block_No:2,Old_Flat_No:"A-24 ",Members_name:"Harishankar Prasad ",New_Flat_No:"A-902",Block:"A",Floor:9,Flat:"02"},
+{Sr_No:25,Block_No:3,Old_Flat_No:"A-1 ",Members_name:"Kapilaben Lalbhai Patel ",New_Flat_No:"B-402",Block:"B",Floor:4,Flat:"02"},
+{Sr_No:26,Block_No:3,Old_Flat_No:"A-2 ",Members_name:"Kaushalyaben Bhagvanbhai Mistry ",New_Flat_No:"A-202",Block:"A",Floor:2,Flat:"02"},
+{Sr_No:27,Block_No:3,Old_Flat_No:"A-3 ",Members_name:"Birendrasinh Pratapsinh ",New_Flat_No:"E-701",Block:"E",Floor:7,Flat:"01"},
+{Sr_No:29,Block_No:3,Old_Flat_No:"A-5 ",Members_name:"Nayanbhai Niranjanbhai Panchal ",New_Flat_No:"C-904",Block:"C",Floor:9,Flat:"04"},
+{Sr_No:30,Block_No:3,Old_Flat_No:"A-6 ",Members_name:"Soni Sonal Bhavin & Soni bhavin Pravinkumar ",New_Flat_No:"A-1103",Block:"A",Floor:11,Flat:"03"},
+{Sr_No:31,Block_No:3,Old_Flat_No:"A-7 ",Members_name:"Rajendrakumar Prahladbhai Panchal ",New_Flat_No:"C-603",Block:"C",Floor:6,Flat:"03"},
+{Sr_No:32,Block_No:3,Old_Flat_No:"A-8 ",Members_name:"Avinash Ratilal Panchal & Jyotindra Ratilal Panchal & Jyotika Ratilal Panchal ",New_Flat_No:"E-301",Block:"E",Floor:3,Flat:"01"},
+{Sr_No:33,Block_No:3,Old_Flat_No:"A-9 ",Members_name:"Kailashben Atmaram Patel ",New_Flat_No:"C-101",Block:"C",Floor:1,Flat:"01"},
+{Sr_No:34,Block_No:3,Old_Flat_No:"A-10 ",Members_name:"Vishnuprasad Joitaram Panchal ",New_Flat_No:"D-604",Block:"D",Floor:6,Flat:"04"},
+{Sr_No:35,Block_No:3,Old_Flat_No:"A-11 ",Members_name:"Chandrakant Ramashankar Vyas ",New_Flat_No:"C-1104",Block:"C",Floor:11,Flat:"04"},
+{Sr_No:36,Block_No:3,Old_Flat_No:"A-12 ",Members_name:"Arunaben Girishkumar Panchal ",New_Flat_No:"A-703",Block:"A",Floor:7,Flat:"03"},
+{Sr_No:37,Block_No:4,Old_Flat_No:"B-13 ",Members_name:"Mahendrabhai Bechardas Patel ",New_Flat_No:"C-1103",Block:"C",Floor:11,Flat:"03"},
+{Sr_No:38,Block_No:4,Old_Flat_No:"B-14 ",Members_name:"Devjibhai Bhavanbhai Patel ",New_Flat_No:"B-1101",Block:"B",Floor:11,Flat:"01"},
+{Sr_No:39,Block_No:4,Old_Flat_No:"B-15 ",Members_name:"Ashokbhai Rameshbhai Panchal ",New_Flat_No:"E-1103",Block:"E",Floor:11,Flat:"03"},
+{Sr_No:40,Block_No:4,Old_Flat_No:"B-16 ",Members_name:"Anil Ramesh Nagar ",New_Flat_No:"E-203",Block:"E",Floor:2,Flat:"03"},
+{Sr_No:41,Block_No:4,Old_Flat_No:"B-17 ",Members_name:"Umaben Kanubhai Panchal ( widow of kanubhai Ambalal Panchal) ",New_Flat_No:"E-101",Block:"E",Floor:1,Flat:"01"},
+{Sr_No:42,Block_No:4,Old_Flat_No:"B-18 ",Members_name:"Pushpaben Chimanlal Raval ",New_Flat_No:"A-1101",Block:"A",Floor:11,Flat:"01"},
+{Sr_No:43,Block_No:4,Old_Flat_No:"B-19 ",Members_name:"Nitin Kantilal Amin ",New_Flat_No:"A-701",Block:"A",Floor:7,Flat:"01"},
+{Sr_No:44,Block_No:4,Old_Flat_No:"B-20 ",Members_name:"Jyashreeben Ranchodlal panchal ",New_Flat_No:"C-203",Block:"C",Floor:2,Flat:"03"},
+{Sr_No:45,Block_No:4,Old_Flat_No:"B-21 ",Members_name:"Shah Hitiksha Vimalbhai ",New_Flat_No:"A-102",Block:"A",Floor:1,Flat:"02"},
+{Sr_No:46,Block_No:4,Old_Flat_No:"B-22 ",Members_name:"Jignesh Dineshchandra Solanki ",New_Flat_No:"D-204",Block:"D",Floor:2,Flat:"04"},
+{Sr_No:47,Block_No:4,Old_Flat_No:"B-23 ",Members_name:"Hansaben Ratubha Vaghela ",New_Flat_No:"C-304",Block:"C",Floor:3,Flat:"04"},
+{Sr_No:48,Block_No:4,Old_Flat_No:"B-24 ",Members_name:"Mehul Surendrabhai Panchal & Manjulaben Surendrabhai Panchal ",New_Flat_No:"B-401",Block:"B",Floor:4,Flat:"01"},
+{Sr_No:49,Block_No:5,Old_Flat_No:"B-1 ",Members_name:"Prashant Bhanuprasad Panchal ",New_Flat_No:"D-903",Block:"D",Floor:9,Flat:"03"},
+{Sr_No:50,Block_No:5,Old_Flat_No:"B-2 ",Members_name:"Darji Ranjitbhai Govindbhai ",New_Flat_No:"D-701",Block:"D",Floor:7,Flat:"01"},
+{Sr_No:51,Block_No:5,Old_Flat_No:"B-3 ",Members_name:"Rakeshbhai Vitthaldas Panchal ",New_Flat_No:"E-1002",Block:"E",Floor:10,Flat:"02"},
+{Sr_No:52,Block_No:5,Old_Flat_No:"B-4 ",Members_name:"Hasmukhbhai Gopaldas Patel ",New_Flat_No:"D-101",Block:"D",Floor:1,Flat:"01"},
+{Sr_No:53,Block_No:5,Old_Flat_No:"B-5 ",Members_name:"Sadhnaben Shaileshkumar Patel ",New_Flat_No:"D-303",Block:"D",Floor:3,Flat:"03"},
+{Sr_No:54,Block_No:5,Old_Flat_No:"B-6 ",Members_name:"Narayanbhai Babubhai Panchal ",New_Flat_No:"E-401",Block:"E",Floor:4,Flat:"01"},
+{Sr_No:55,Block_No:5,Old_Flat_No:"B-7 ",Members_name:"Maulik Naranbhai Panchal & Pravinaben Naranbhai Panchal & Ankita Naranbhai Panchal",New_Flat_No:"A-1002",Block:"A",Floor:10,Flat:"02"},
+{Sr_No:56,Block_No:5,Old_Flat_No:"B-8 ",Members_name:"Pushpaben Hasmukhlal Panchal ",New_Flat_No:"C-704",Block:"C",Floor:7,Flat:"04"},
+{Sr_No:57,Block_No:5,Old_Flat_No:"B-9 ",Members_name:"Pandya Meenaben Arbvind bhai & Pandya Arvindbhai Devjibhai & Pandya Mehul Arvindbhai ",New_Flat_No:"C-602",Block:"C",Floor:6,Flat:"02"},
+{Sr_No:58,Block_No:5,Old_Flat_No:"B-10 ",Members_name:"Chandubhai Narayandas Patel ",New_Flat_No:"D-302",Block:"D",Floor:3,Flat:"02"},
+{Sr_No:59,Block_No:5,Old_Flat_No:"B-11 ",Members_name:"Bhupendrabhai Hargovanbhai Patel & Ketanbhai Bhupendrabhai Patel & Harishbhai Bhupendrabhai patel ",New_Flat_No:"C-1001",Block:"C",Floor:10,Flat:"01"},
+{Sr_No:60,Block_No:5,Old_Flat_No:"B-12 ",Members_name:"Rahul Baldevsinh Rajput & hetal kawar shailsinh ",New_Flat_No:"B-1103",Block:"B",Floor:11,Flat:"03"},
+{Sr_No:61,Block_No:6,Old_Flat_No:"B-37 ",Members_name:"Dhaval Dinubhai ( Dineshbhai ) Panchal ",New_Flat_No:"D-1003",Block:"D",Floor:10,Flat:"03"},
+{Sr_No:62,Block_No:6,Old_Flat_No:"B-38 ",Members_name:"Pushpaben Rameshchandra Patel ",New_Flat_No:"E-703",Block:"E",Floor:7,Flat:"03"},
+{Sr_No:63,Block_No:6,Old_Flat_No:"B-39 ",Members_name:"Dhruti Narendrakumar Dani & Sachin Narendrakumar Dani ",New_Flat_No:"C-1101",Block:"C",Floor:11,Flat:"01"},
+{Sr_No:64,Block_No:6,Old_Flat_No:"B-40 ",Members_name:"Jinalben Bhaumik Shah ",New_Flat_No:"E-303",Block:"E",Floor:3,Flat:"03"},
+{Sr_No:65,Block_No:6,Old_Flat_No:"B-41 ",Members_name:"Baldevbhai Ranchhodbhai Patel ",New_Flat_No:"B-701",Block:"B",Floor:7,Flat:"01"},
+{Sr_No:66,Block_No:6,Old_Flat_No:"B-42 ",Members_name:"Sandhyaben Dilipkumar Shah ",New_Flat_No:"E-901",Block:"E",Floor:9,Flat:"01"},
+{Sr_No:67,Block_No:6,Old_Flat_No:"B-43 ",Members_name:"Jayeshbhai Baniyabhai Koshti & Ravishankar Baniyabhai Koshti ",New_Flat_No:"E-201",Block:"E",Floor:2,Flat:"01"},
+{Sr_No:68,Block_No:6,Old_Flat_No:"B-44 ",Members_name:"Dharmendra Gangaram Joshi & Kusumben Dharmendrakumar Joshi ",New_Flat_No:"A-302",Block:"A",Floor:3,Flat:"02"},
+{Sr_No:69,Block_No:6,Old_Flat_No:"B-45 ",Members_name:"Shantaben Narayanbhai Patel ",New_Flat_No:"C-303",Block:"C",Floor:3,Flat:"03"},
+{Sr_No:70,Block_No:6,Old_Flat_No:"B-46 ",Members_name:"Dineshkumar Amrutlal Panchal ",New_Flat_No:"D-1001",Block:"D",Floor:10,Flat:"01"},
+{Sr_No:72,Block_No:6,Old_Flat_No:"B-48 ",Members_name:"Amrutbhai Jivabhai Prajapati ",New_Flat_No:"E-1101",Block:"E",Floor:11,Flat:"01"},
+{Sr_No:73,Block_No:7,Old_Flat_No:"B-85 ",Members_name:"Suryakant Shivlal Patel & Champaben Suryakant Patel ",New_Flat_No:"E-602",Block:"E",Floor:6,Flat:"02"},
+{Sr_No:74,Block_No:7,Old_Flat_No:"B-86 ",Members_name:"Monikaben Kamleshbhai Panchal ",New_Flat_No:"B-604",Block:"B",Floor:6,Flat:"04"},
+{Sr_No:75,Block_No:7,Old_Flat_No:"B-87 ",Members_name:"Utpal Maheshkumar Raval ",New_Flat_No:"B-1104",Block:"B",Floor:11,Flat:"04"},
+{Sr_No:76,Block_No:7,Old_Flat_No:"B-88 ",Members_name:"Vasantiben Maheshbhai Pawar ",New_Flat_No:"B-703",Block:"B",Floor:7,Flat:"03"},
+{Sr_No:77,Block_No:7,Old_Flat_No:"B-89 ",Members_name:"Jyotindrakumar Harihar Jani & Nirupama ( Daughter of Harihar Jani) & Vinodaben ( Daughter of Harihar Jani) & Pragnaben ( Daughter of Harihar Jani) ",New_Flat_No:"E-304",Block:"E",Floor:3,Flat:"04"},
+{Sr_No:78,Block_No:7,Old_Flat_No:"B-90 ",Members_name:"Maniben Ambalal Patel ",New_Flat_No:"C-901",Block:"C",Floor:9,Flat:"01"},
+{Sr_No:79,Block_No:7,Old_Flat_No:"B-91 ",Members_name:"Chandrikaben Pravinbhai Panchal ",New_Flat_No:"A-1102",Block:"A",Floor:11,Flat:"02"},
+{Sr_No:80,Block_No:7,Old_Flat_No:"B-92 ",Members_name:"Rajesh Sunderlal Koshti ",New_Flat_No:"B-1102",Block:"B",Floor:11,Flat:"02"},
+{Sr_No:81,Block_No:7,Old_Flat_No:"B-93 ",Members_name:"Jitendrabhai Somabhai Panchal ",New_Flat_No:"E-402",Block:"E",Floor:4,Flat:"02"},
+{Sr_No:82,Block_No:8,Old_Flat_No:"B-94 ",Members_name:"Kantaben Dhirubhai Panchal ",New_Flat_No:"A-903",Block:"A",Floor:9,Flat:"03"},
+{Sr_No:83,Block_No:8,Old_Flat_No:"B-95 ",Members_name:"Jyotsnaben Tarunkumar Payghoge ",New_Flat_No:"D-1004",Block:"D",Floor:10,Flat:"04"},
+{Sr_No:84,Block_No:8,Old_Flat_No:"B-96 ",Members_name:"Manoramaben Jayantilal Patel ",New_Flat_No:"E-904",Block:"E",Floor:9,Flat:"04"},
+{Sr_No:85,Block_No:8,Old_Flat_No:"B-97 ",Members_name:"Bharatbhai Naranbhai Panchal ",New_Flat_No:"C-1002",Block:"C",Floor:10,Flat:"02"},
+{Sr_No:86,Block_No:8,Old_Flat_No:"B-98 ",Members_name:"Kailashben Chinubhai Panchal ",New_Flat_No:"C-201",Block:"C",Floor:2,Flat:"01"},
+{Sr_No:87,Block_No:8,Old_Flat_No:"B-99 ",Members_name:"Vasuben Govindbhai Darji ",New_Flat_No:"D-403",Block:"D",Floor:4,Flat:"03"},
+{Sr_No:88,Block_No:8,Old_Flat_No:"B-100 ",Members_name:"Prajapati Ashvinbhai Maganbhai ",New_Flat_No:"A-303",Block:"A",Floor:3,Flat:"03"},
+{Sr_No:89,Block_No:8,Old_Flat_No:"B-101 ",Members_name:"Chinubhai Harjivandas Panchal ",New_Flat_No:"B-301",Block:"B",Floor:3,Flat:"01"},
+{Sr_No:90,Block_No:8,Old_Flat_No:"B-102 ",Members_name:"Jaskran Ramkhelavan Yadav ",New_Flat_No:"A-201",Block:"A",Floor:2,Flat:"01"},
+{Sr_No:91,Block_No:8,Old_Flat_No:"B-103 ",Members_name:"Rekhakavar Vikramsinh Rajput ",New_Flat_No:"A-402",Block:"A",Floor:4,Flat:"02"},
+{Sr_No:92,Block_No:8,Old_Flat_No:"B-104 ",Members_name:"Pinkiben BaldevsinhRajput ",New_Flat_No:"B-1002",Block:"B",Floor:10,Flat:"02"},
+{Sr_No:93,Block_No:8,Old_Flat_No:"B-105 ",Members_name:"Hansaben Rameshchandra Babariya ",New_Flat_No:"C-902",Block:"C",Floor:9,Flat:"02"},
+{Sr_No:94,Block_No:9,Old_Flat_No:"B-106 ",Members_name:"Rajendrakumar Mafatlal Sathvara ",New_Flat_No:"E-604",Block:"E",Floor:6,Flat:"04"},
+{Sr_No:95,Block_No:9,Old_Flat_No:"B-107 ",Members_name:"Minal Alpeshkumar Shroff ",New_Flat_No:"E-102",Block:"E",Floor:1,Flat:"02"},
+{Sr_No:96,Block_No:9,Old_Flat_No:"B-108 ",Members_name:"Premchandbhai Mohanlal Panchal ",New_Flat_No:"E-202",Block:"E",Floor:2,Flat:"02"},
+{Sr_No:97,Block_No:9,Old_Flat_No:"B-109 ",Members_name:"Prajapati Ramesh Navaji ",New_Flat_No:"B-302",Block:"B",Floor:3,Flat:"02"},
+{Sr_No:98,Block_No:9,Old_Flat_No:"B-110 ",Members_name:"Panchal Rakshaben Govindbhai ",New_Flat_No:"E-1102",Block:"E",Floor:11,Flat:"02"},
+{Sr_No:99,Block_No:9,Old_Flat_No:"B-111 ",Members_name:"Rekhaben Aniruddhbhai Oza & Zankrut Aniruddhbhai Oza, & Jimil Aniruddhbhai Oza ",New_Flat_No:"B-303",Block:"B",Floor:3,Flat:"03"},
+{Sr_No:100,Block_No:9,Old_Flat_No:"B-112 ",Members_name:"Amichand Mulchand Gandhi ",New_Flat_No:"E-1003",Block:"E",Floor:10,Flat:"03"},
+{Sr_No:101,Block_No:9,Old_Flat_No:"B-113 ",Members_name:"Shilpaben Jayantilal Gohil ",New_Flat_No:"A-1001",Block:"A",Floor:10,Flat:"01"},
+{Sr_No:102,Block_No:9,Old_Flat_No:"B-114 ",Members_name:"Babubhai Joitaram Panchal ",New_Flat_No:"D-904",Block:"D",Floor:9,Flat:"04"},
+{Sr_No:103,Block_No:9,Old_Flat_No:"B-115 ",Members_name:"Urvashiben Jigneshkumar Bhavsar & Hinaben Mineshkumar Bhavsar ",New_Flat_No:"A-401",Block:"A",Floor:4,Flat:"01"},
+{Sr_No:104,Block_No:9,Old_Flat_No:"B-116 ",Members_name:"Arunaben Kishorbhai Joshi ",New_Flat_No:"D-301",Block:"D",Floor:3,Flat:"01"},
+{Sr_No:105,Block_No:9,Old_Flat_No:"B-117 ",Members_name:"Rameshchandra Ranchodlal Parekh ",New_Flat_No:"B-204",Block:"B",Floor:2,Flat:"04"},
+{Sr_No:106,Block_No:10,Old_Flat_No:"A-25 ",Members_name:"Neetaben Nareshbhai Panchal ",New_Flat_No:"E-702",Block:"E",Floor:7,Flat:"02"},
+{Sr_No:107,Block_No:10,Old_Flat_No:"A-26 ",Members_name:"Radhika Jaydip Patel ",New_Flat_No:"D-1002",Block:"D",Floor:10,Flat:"02"},
+{Sr_No:109,Block_No:10,Old_Flat_No:"A-28 ",Members_name:"Dahiben Mangaldas Patel ",New_Flat_No:"B-403",Block:"B",Floor:4,Flat:"03"},
+{Sr_No:110,Block_No:10,Old_Flat_No:"A-29 ",Members_name:"Sunil Mohansinh Rana & Anil Mohansinh Rana & Anita Mohansinh Rana ",New_Flat_No:"C-404",Block:"C",Floor:4,Flat:"04"},
+{Sr_No:111,Block_No:10,Old_Flat_No:"A-30 ",Members_name:"Bhavnaben Ashokkumar Pancholi ",New_Flat_No:"E-1004",Block:"E",Floor:10,Flat:"04"},
+{Sr_No:112,Block_No:10,Old_Flat_No:"A-31 ",Members_name:"Ashvinbhai Hirabhai Patel ",New_Flat_No:"C-1102",Block:"C",Floor:11,Flat:"02"},
+{Sr_No:113,Block_No:10,Old_Flat_No:"A-32 ",Members_name:"Ilaben Pravinbhai Patel & Bhavesh Pravinbhai Patel & Ashishbhai Pravinbhai Patel ",New_Flat_No:"B-904",Block:"B",Floor:9,Flat:"04"},
+{Sr_No:114,Block_No:10,Old_Flat_No:"A-33 ",Members_name:"Jyotsnaben Pravinchandra Bhatt ",New_Flat_No:"D-401",Block:"D",Floor:4,Flat:"01"},
+{Sr_No:115,Block_No:10,Old_Flat_No:"A-34 ",Members_name:"Jashodaben Kanubhai Panchal ",New_Flat_No:"B-603",Block:"B",Floor:6,Flat:"03"},
+{Sr_No:116,Block_No:10,Old_Flat_No:"A-35 ",Members_name:"Nishaben Hirenbhai Dave ",New_Flat_No:"E-403",Block:"E",Floor:4,Flat:"03"},
+{Sr_No:117,Block_No:10,Old_Flat_No:"A-36 ",Members_name:"Babubhai Dharamshibhai Patel ",New_Flat_No:"D-504",Block:"D",Floor:5,Flat:"04"},
+{Sr_No:118,Block_No:11,Old_Flat_No:"A-37 ",Members_name:"Itesh Hasmukhbhai Chauhan ",New_Flat_No:"D-704",Block:"D",Floor:7,Flat:"04"},
+{Sr_No:119,Block_No:11,Old_Flat_No:"A-38 ",Members_name:"Mukeshbhai Ambalal Panchal ",New_Flat_No:"A-1004",Block:"A",Floor:10,Flat:"04"},
+{Sr_No:120,Block_No:11,Old_Flat_No:"A-39 ",Members_name:"Mohit Nandankumar Panchal ",New_Flat_No:"E-902",Block:"E",Floor:9,Flat:"02"},
+{Sr_No:122,Block_No:11,Old_Flat_No:"A-41 ",Members_name:"Pritiben Navinchandra Patel ",New_Flat_No:"C-402",Block:"C",Floor:4,Flat:"02"},
+{Sr_No:123,Block_No:11,Old_Flat_No:"A-42 ",Members_name:"Pushpaben Chimanlal Raval ",New_Flat_No:"E-404",Block:"E",Floor:4,Flat:"04"},
+{Sr_No:124,Block_No:11,Old_Flat_No:"A-43 ",Members_name:"Prahladbhai Ambalal Patel ",New_Flat_No:"D-402",Block:"D",Floor:4,Flat:"02"},
+{Sr_No:125,Block_No:11,Old_Flat_No:"A-44 ",Members_name:"Mukeshbhai Shankarlal Panchal ",New_Flat_No:"D-603",Block:"D",Floor:6,Flat:"03"},
+{Sr_No:126,Block_No:11,Old_Flat_No:"A-45 ",Members_name:"Rushikesh Bansilal Shah & Nimisha Rushikesh Shah ",New_Flat_No:"D-503",Block:"D",Floor:5,Flat:"03"},
+{Sr_No:127,Block_No:11,Old_Flat_No:"A-46 ",Members_name:"Sadhnaben Santoshkumar Roy ",New_Flat_No:"E-1001",Block:"E",Floor:10,Flat:"01"},
+{Sr_No:128,Block_No:11,Old_Flat_No:"A-47 ",Members_name:"Mannaben Shirishkumar Nayak ",New_Flat_No:"E-302",Block:"E",Floor:3,Flat:"02"},
+{Sr_No:129,Block_No:11,Old_Flat_No:"A-48 ",Members_name:"Sanjaykumar Jayantilal Mevada ",New_Flat_No:"D-102",Block:"D",Floor:1,Flat:"02"},
+{Sr_No:130,Block_No:12,Old_Flat_No:"B-49 ",Members_name:"Kirtisinh Sardarsinh Rajput ",New_Flat_No:"B-304",Block:"B",Floor:3,Flat:"04"},
+{Sr_No:132,Block_No:12,Old_Flat_No:"B-51 ",Members_name:"Leenaben Nimishbhai Patani ",New_Flat_No:"D-702",Block:"D",Floor:7,Flat:"02"},
+{Sr_No:133,Block_No:12,Old_Flat_No:"B-52 ",Members_name:"Ashokbhai Gaurihnakar Dave ",New_Flat_No:"C-601",Block:"C",Floor:6,Flat:"01"},
+{Sr_No:134,Block_No:12,Old_Flat_No:"B-53 ",Members_name:"Alkaben Shantilal Patil ",New_Flat_No:"A-704",Block:"A",Floor:7,Flat:"04"},
+{Sr_No:135,Block_No:12,Old_Flat_No:"B-54 ",Members_name:"Shardaben Mafatlal Prajapati & Prakashkumar Mafatlal Prajapati & Ravindrakumar Mafatlal Prajapati & Payalben Mafatlal Prajapati ",New_Flat_No:"E-204",Block:"E",Floor:2,Flat:"04"},
+{Sr_No:136,Block_No:12,Old_Flat_No:"B-55 ",Members_name:"Hasmukhbhai Nagindas Modi ",New_Flat_No:"B-601",Block:"B",Floor:6,Flat:"01"},
+{Sr_No:137,Block_No:12,Old_Flat_No:"B-56 ",Members_name:"Lilaram Ghanshyamdas Sevkani ",New_Flat_No:"A-602",Block:"A",Floor:6,Flat:"02"},
+{Sr_No:138,Block_No:12,Old_Flat_No:"B-57 ",Members_name:"Khyati Dipakkumar Trivedi ",New_Flat_No:"D-601",Block:"D",Floor:6,Flat:"01"},
+{Sr_No:139,Block_No:12,Old_Flat_No:"B-58 ",Members_name:"Ramilaben Ashvinbhai Panchal ",New_Flat_No:"D-404",Block:"D",Floor:4,Flat:"04"},
+{Sr_No:140,Block_No:12,Old_Flat_No:"B-59 ",Members_name:"Shri. Madhuben Natvarlal Mevada ",New_Flat_No:"B-902",Block:"B",Floor:9,Flat:"02"},
+{Sr_No:141,Block_No:12,Old_Flat_No:"B-60 ",Members_name:"Narendra Natvarlal Shah ",New_Flat_No:"C-1003",Block:"C",Floor:10,Flat:"03"},
+{Sr_No:142,Block_No:13,Old_Flat_No:"B-61 ",Members_name:"Jagdishchanda Kanaiyalal Darji ",New_Flat_No:"B-704",Block:"B",Floor:7,Flat:"04"},
+{Sr_No:143,Block_No:13,Old_Flat_No:"B-62 ",Members_name:"Dipika Rakesh Gandhi & Rakesh Mansukhlal Gandhi ",New_Flat_No:"C-202",Block:"C",Floor:2,Flat:"02"},
+{Sr_No:144,Block_No:13,Old_Flat_No:"B-63 ",Members_name:"Rakesh Mansukhlal Gandhi ",New_Flat_No:"E-603",Block:"E",Floor:6,Flat:"03"},
+{Sr_No:145,Block_No:13,Old_Flat_No:"B-64 ",Members_name:"Himanshu Suryakantbhai Panchal ",New_Flat_No:"A-901",Block:"A",Floor:9,Flat:"01"},
+{Sr_No:146,Block_No:13,Old_Flat_No:"B-65 ",Members_name:"Prashant Rajnikant Mistry ",New_Flat_No:"C-701",Block:"C",Floor:7,Flat:"01"},
+{Sr_No:147,Block_No:13,Old_Flat_No:"B-66 ",Members_name:"Jagdishchandra Chandulal Panchal ",New_Flat_No:"C-302",Block:"C",Floor:3,Flat:"02"},
+{Sr_No:148,Block_No:13,Old_Flat_No:"B-67 ",Members_name:"Manishaben Bhailalbhai Patel ",New_Flat_No:"A-101",Block:"A",Floor:1,Flat:"01"},
+{Sr_No:149,Block_No:13,Old_Flat_No:"B-68 ",Members_name:"Upendra Jethlal Panchal & kandarp Bharatbhai Panchal & Pragnaben Ashvinbhai Panchal & Kshiti Priteshbhai Panchal ",New_Flat_No:"B-1004",Block:"B",Floor:10,Flat:"04"},
+{Sr_No:150,Block_No:13,Old_Flat_No:"B-69 ",Members_name:"Anilkumar Balubhai Vavadiya ",New_Flat_No:"D-103",Block:"D",Floor:1,Flat:"03"},
+{Sr_No:151,Block_No:13,Old_Flat_No:"B-70 ",Members_name:"Bharatkumar Vitthaldas Panchal & Varshaben Vitthaldas Panchal & Smitaben Vitthaldas Panchal ",New_Flat_No:"A-702",Block:"A",Floor:7,Flat:"02"},
+{Sr_No:152,Block_No:13,Old_Flat_No:"B-71 ",Members_name:"Vasantiben Maheshkumar Pawar ",New_Flat_No:"B-201",Block:"B",Floor:2,Flat:"01"},
+{Sr_No:153,Block_No:13,Old_Flat_No:"B-72 ",Members_name:"Jyotsnaben Rajnikant Misty ( widow of Rajnikant Ganpatlal Misty) ",New_Flat_No:"D-902",Block:"D",Floor:9,Flat:"02"},
+{Sr_No:154,Block_No:14,Old_Flat_No:"B-73 ",Members_name:"Pravinaben Dahyabhai Mochi ",New_Flat_No:"B-901",Block:"B",Floor:9,Flat:"01"},
+{Sr_No:155,Block_No:14,Old_Flat_No:"B-74 ",Members_name:"Jatinkumar Ashokkumar Modi & Priyalben Jatinkumar Modi ",New_Flat_No:"C-703",Block:"C",Floor:7,Flat:"03"},
+{Sr_No:156,Block_No:14,Old_Flat_No:"B-75 ",Members_name:"Vinodbhai Gopaldas Patel ",New_Flat_No:"E-103",Block:"E",Floor:1,Flat:"03"},
+{Sr_No:157,Block_No:14,Old_Flat_No:"B-76 ",Members_name:"Mahendrabhai Natvarlal Priyadarshi & Bhagvati Mahendrabhai Priyadarshi ",New_Flat_No:"B-702",Block:"B",Floor:7,Flat:"02"},
+{Sr_No:158,Block_No:14,Old_Flat_No:"B-77 ",Members_name:"Binaben Bharatbhai Shah ",New_Flat_No:"E-601",Block:"E",Floor:6,Flat:"01"},
+{Sr_No:159,Block_No:14,Old_Flat_No:"B-78 ",Members_name:"Bhavika Tushar Shah & Tushar B Shah ",New_Flat_No:"E-704",Block:"E",Floor:7,Flat:"04"},
+{Sr_No:160,Block_No:14,Old_Flat_No:"B-79 ",Members_name:"Hareshkumar Khushaldas Solanki ",New_Flat_No:"D-602",Block:"D",Floor:6,Flat:"02"},
+{Sr_No:161,Block_No:14,Old_Flat_No:"B-80 ",Members_name:"Anjuben Sunderlal Advani ",New_Flat_No:"D-901",Block:"D",Floor:9,Flat:"01"},
+{Sr_No:162,Block_No:14,Old_Flat_No:"B-81 ",Members_name:"Nayan Pravinkumar ( Pravinbhai) Soni & Bhavinbhai Pravinkumar Soni & Bhadresh Pravinkumar Soni ",New_Flat_No:"C-702",Block:"C",Floor:7,Flat:"02"},
+{Sr_No:163,Block_No:14,Old_Flat_No:"B-82 ",Members_name:"Vinaben Dilipkumar Vaswani ",New_Flat_No:"A-403",Block:"A",Floor:4,Flat:"03"},
+{Sr_No:164,Block_No:14,Old_Flat_No:"B-83 ",Members_name:"Murlidhar Dayaldas Advani ",New_Flat_No:"A-603",Block:"A",Floor:6,Flat:"03"},
+{Sr_No:165,Block_No:14,Old_Flat_No:"B-84 ",Members_name:"Prashant Prahladbhai Darji ",New_Flat_No:"E-903",Block:"E",Floor:9,Flat:"03"}
+      // Add full dataset here
+    ];
+
+    const blockSelect = document.getElementById("blockFilter");
+    const floorSelect = document.getElementById("floorFilter");
+
+    function populateFilters() {
+      [...new Set(data.map(d => d.Block))].sort().forEach(b => {
+        const opt = document.createElement("option");
+        opt.value = b;
+        opt.textContent = b;
+        blockSelect.appendChild(opt);
+      });
+
+      [...new Set(data.map(d => d.Floor))].sort((a,b)=>a-b).forEach(f => {
+        const opt = document.createElement("option");
+        opt.value = f;
+        opt.textContent = f;
+        floorSelect.appendChild(opt);
+      });
+    }
+
+    function displayData(rows) {
+      const tbody = document.querySelector("#resultTable tbody");
+      tbody.innerHTML = "";
+      document.getElementById("noData").style.display = rows.length ? "none" : "block";
+      rows.forEach(r => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${r.Sr_No}</td>
+          <td>${r.Block}</td>
+          <td>${r.Floor}</td>
+          <td>${r.Flat}</td>
+          <td>${r.Members_name}</td>
+          <td>${r.Old_Flat_No}</td>
+          <td>${r.New_Flat_No}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function filterData() {
+      const block = blockSelect.value;
+      const floor = floorSelect.value;
+      const flat = document.getElementById("flatFilter").value.trim();
+      const name = document.getElementById("nameFilter").value.trim().toLowerCase();
+      const oldFlat = document.getElementById("oldFlatFilter").value.trim().toLowerCase();
+      const newFlat = document.getElementById("newFlatFilter").value.trim().toLowerCase();
+
+      let filtered = data;
+      if (block) filtered = filtered.filter(d => d.Block === block);
+      if (floor) filtered = filtered.filter(d => d.Floor == floor);
+      if (flat) filtered = filtered.filter(d => d.Flat === flat);
+      if (name) filtered = filtered.filter(d => d.Members_name.toLowerCase().includes(name));
+      if (oldFlat) filtered = filtered.filter(d => d.Old_Flat_No.toLowerCase().includes(oldFlat));
+      if (newFlat) filtered = filtered.filter(d => d.New_Flat_No.toLowerCase().includes(newFlat));
+
+      displayData(filtered);
+
+      // If Block + Floor + Flat are all selected → show neighbours
+      if (block && floor && flat) {
+        const neighbours = data.filter(d => d.Block === block && d.Floor == floor && d.Flat !== flat);
+        if (neighbours.length > 0) {
+          alert(`👋 Neighbours on ${block}-${floor}:\n${neighbours.map(n => "• " + n.Members_name + " (" + n.Flat + ")").join("\n")}`);
+        } else {
+          alert("No neighbours found on this floor.");
+        }
+      }
+    }
+
+    function resetFilters() {
+      blockSelect.value = "";
+      floorSelect.value = "";
+      document.getElementById("flatFilter").value = "";
+      document.getElementById("nameFilter").value = "";
+      document.getElementById("oldFlatFilter").value = "";
+      document.getElementById("newFlatFilter").value = "";
+      displayData(data);
+    }
+
+    populateFilters();
+    displayData(data);
+  </script>
+
+</body>
+</html>
