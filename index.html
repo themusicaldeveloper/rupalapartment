@@ -2,168 +2,280 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>🏘️ Dynamic Rupal Neighbour Finder</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>🏘️ Rupal Neighbour Finder</title>
   <style>
-    body {
-      font-family: "Segoe UI", Arial, sans-serif;
-      background: #eef3f8;
-      margin: 0;
-      padding: 30px;
-      color: #333;
+    :root{
+      --bg:#f3f6fb;
+      --card:#ffffff;
+      --brand:#0e63d6;
+      --brand-600:#0a52b3;
+      --ink:#1f2937;
+      --muted:#6b7280;
+      --ring:rgba(14,99,214,.25);
+      --ok:#10b981;
+      --warn:#f59e0b;
+      --danger:#ef4444;
+      --radius:14px;
+      --shadow:0 10px 25px rgba(0,0,0,.06);
     }
 
-    h1 {
-      text-align: center;
-      margin-bottom: 25px;
-      color: #004aad;
-      letter-spacing: 1px;
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Noto Sans", "Helvetica Neue", sans-serif;
+      background: radial-gradient(1200px 600px at 70% -200px, #cfe5ff 0, transparent 60%), var(--bg);
+      color: var(--ink);
+      padding: clamp(16px, 3vw, 32px);
     }
 
-    .filter-box {
-      background: #fff;
-      padding: 20px;
-      border-radius: 10px;
-      box-shadow: 0 3px 8px rgba(0,0,0,0.1);
-      margin-bottom: 25px;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 15px;
-      justify-content: center;
+    header{
+      max-width:1100px;
+      margin:0 auto 14px;
+      padding: 18px 16px;
+      display:flex;
+      gap:14px;
+      align-items:center;
+      border-radius: var(--radius);
+      background: linear-gradient(135deg, #eff6ff 0%, #ffffff 60%);
+      box-shadow: var(--shadow);
+      animation: fadeIn .4s ease-out both;
+    }
+    header .emoji{font-size:30px; filter: drop-shadow(0 2px 4px rgba(0,0,0,.08));}
+    header h1{
+      font-size: clamp(20px, 2.2vw, 28px);
+      margin:0 0 4px 0; color: var(--brand);
+      letter-spacing:.3px;
+    }
+    header p{ margin:0; color: var(--muted); font-size: 13.5px;}
+
+    .shell{ max-width:1100px; margin:0 auto; display:grid; gap:16px;}
+    .filters{
+      background:var(--card);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding:16px;
+      display:grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap:12px;
+      animation: floatIn .45s ease-out both;
+    }
+    .filters .field{
+      grid-column: span 12;
+    }
+    @media (min-width:680px){
+      .filters .field{ grid-column: span 4;}
+      .filters .field.short{ grid-column: span 2;}
+      .filters .actions{ grid-column: span 12; display:flex; gap:10px; justify-content:flex-end; }
+    }
+    label{ display:block; font-size:12px; font-weight:700; color:#475569; margin: 2px 0 6px; }
+    select,input{
+      width:100%;
+      padding:10px 12px;
+      border:1px solid #e5e7eb;
+      border-radius:10px;
+      font-size:14px;
+      outline:none;
+      background:#fff;
+      transition: box-shadow .2s, border-color .2s, transform .05s;
+    }
+    select:focus, input:focus{
+      border-color: var(--brand);
+      box-shadow: 0 0 0 4px var(--ring);
+    }
+    input::placeholder{ color:#9ca3af; }
+
+    .btn{
+      display:inline-flex; align-items:center; gap:8px;
+      border:none; cursor:pointer; font-weight:700;
+      padding:10px 14px; border-radius: 999px;
+      background: var(--brand); color:#fff;
+      box-shadow: 0 6px 16px rgba(14,99,214,.22);
+      transition: transform .08s ease, box-shadow .2s ease, background .2s ease;
+      user-select:none;
+    }
+    .btn:hover{ background: var(--brand-600);}
+    .btn:active{ transform: translateY(1px); box-shadow: 0 3px 10px rgba(14,99,214,.18); }
+    .btn.secondary{ background:#e5efff; color:#1e3a8a; box-shadow:none; }
+    .btn.danger{ background: var(--danger); box-shadow:0 6px 16px rgba(239,68,68,.18); }
+    .btn .spinner{
+      width:16px; height:16px; border-radius:50%;
+      border:2px solid rgba(255,255,255,.6);
+      border-top-color: #fff; animation: spin .8s linear infinite;
     }
 
-    label {
-      font-weight: 600;
-      margin-right: 5px;
+    .summary{
+      display:flex; align-items:center; justify-content:space-between;
+      gap:10px; padding:6px 2px 2px; color:var(--muted);
+    }
+    .chip{
+      display:inline-flex; align-items:center; gap:8px;
+      background:#eef5ff; color:#0b53b8;
+      border:1px solid #d7e8ff;
+      padding:6px 12px; border-radius:999px; font-size:12.5px;
+      box-shadow:0 2px 8px rgba(11,83,184,.06);
+      animation: fadeIn .3s both;
     }
 
-    select, input, button {
-      padding: 8px 12px;
-      border: 1px solid #ccc;
-      border-radius: 8px;
-      font-size: 14px;
-      outline: none;
+    .table-wrap{
+      background:var(--card); border-radius: var(--radius);
+      box-shadow: var(--shadow); overflow:hidden; animation: floatIn .45s .05s ease-out both;
+    }
+    table{ width:100%; border-collapse: collapse; }
+    thead th{
+      position:sticky; top:0; z-index:1;
+      background: linear-gradient(180deg, #0e63d6 0%, #0a55bb 100%);
+      color:#fff; text-align:left; font-weight:800;
+      letter-spacing:.3px; font-size:13px; padding:12px 14px;
+    }
+    tbody td{
+      border-bottom:1px solid #f1f5f9; padding:11px 14px; font-size:14px; vertical-align:top;
+    }
+    tbody tr{ transition: background .15s ease, transform .06s ease; }
+    tbody tr:hover{ background:#f8fbff; }
+    tbody tr:active{ transform: scale(.998); }
+    .muted{ color:var(--muted); }
+    .flat-badge{ font: inherit; font-weight:800; letter-spacing:.3px; background:#eef7f3; color:#0f766e; border:1px solid #b8e2d9; padding:3px 8px; border-radius:8px; }
+    mark{ background:#fff1a6; padding:0 2px; border-radius:4px; }
+
+    /* Mobile card layout */
+    @media (max-width:760px){
+      .table-wrap{ padding:8px; }
+      table{ display:none; }
+      .cards{ display:grid; grid-template-columns:1fr; gap:10px; }
+      .card{
+        background:#fff; border:1px solid #eef2f7; border-radius:12px; padding:12px; box-shadow: var(--shadow);
+        display:grid; gap:6px; animation: fadeIn .25s both;
+      }
+      .card .title{ font-weight:800; color:var(--brand); }
+      .grid{ display:grid; grid-template-columns: auto 1fr; gap:6px 10px; }
+      .k{ color:#64748b; }
     }
 
-    select:focus, input:focus {
-      border-color: #0078d7;
-      box-shadow: 0 0 4px rgba(0,120,215,0.4);
+    /* Neighbour drawer */
+    .drawer{
+      position: fixed; inset: 0 0 0 auto; width:min(420px, 92vw);
+      background:#fff; box-shadow:-24px 0 40px rgba(0,0,0,.12);
+      transform: translateX(100%); transition: transform .28s ease;
+      display:flex; flex-direction:column; z-index:50;
+    }
+    .drawer.open{ transform: translateX(0); }
+    .drawer .head{
+      padding:14px 16px; border-bottom:1px solid #eef2f7;
+      display:flex; align-items:center; justify-content:space-between;
+    }
+    .drawer .head h3{ margin:0; font-size:16px; color:#0f172a; }
+    .drawer .list{ padding:10px 16px; overflow:auto; }
+    .drawer .item{
+      padding:10px 12px; border:1px solid #eef2f7; border-radius:10px; margin-bottom:10px;
+      background:#fafcff;
+    }
+    .overlay{
+      position: fixed; inset:0; background: rgba(15, 23, 42, .25);
+      opacity:0; pointer-events:none; transition: opacity .2s ease; z-index:40;
+    }
+    .overlay.show{ opacity:1; pointer-events:auto; }
+
+    .empty{
+      text-align:center; padding:18px; color:#7c8595; font-style:italic;
     }
 
-    button {
-      background: #0078d7;
-      color: #fff;
-      cursor: pointer;
-      transition: all 0.2s ease;
-      border: none;
-      font-weight: 600;
-    }
-
-    button:hover {
-      background: #005fa3;
-    }
-
-    .reset-btn {
-      background: #f44336;
-    }
-
-    .reset-btn:hover {
-      background: #c62828;
-    }
-
-    table {
-      border-collapse: collapse;
-      width: 100%;
-      background: #fff;
-      border-radius: 10px;
-      overflow: hidden;
-      box-shadow: 0 3px 8px rgba(0,0,0,0.1);
-    }
-
-    th, td {
-      border-bottom: 1px solid #eee;
-      padding: 10px 12px;
-      text-align: left;
-      font-size: 15px;
-    }
-
-    th {
-      background: #0078d7;
-      color: white;
-    }
-
-    tr:hover {
-      background: #f9f9f9;
-    }
-
-    #noData {
-      text-align: center;
-      margin-top: 10px;
-      color: #777;
-      font-style: italic;
-    }
-
-    @media (max-width: 768px) {
-      .filter-box { flex-direction: column; align-items: stretch; }
-      table, th, td { font-size: 13px; }
-    }
+    /* Animations */
+    @keyframes fadeIn{ from{opacity:0; transform: translateY(6px);} to{ opacity:1; transform:none; } }
+    @keyframes floatIn{ from{opacity:0; transform: translateY(14px) scale(.98);} to{ opacity:1; transform:none; } }
+    @keyframes spin{ to{ transform: rotate(360deg); } }
   </style>
 </head>
 <body>
 
-  <h1>🏠 Dynamic Rupal Neighbour Finder</h1>
+  <header>
+    <div class="emoji">🏠</div>
+    <div>
+      <h1>Rupal Neighbour Finder</h1>
+      <p>Search by Block, Floor, Flat or Name — optimized for mobile and desktop.</p>
+    </div>
+  </header>
 
-  <div class="filter-box">
-    <div>
-      <label>Block:</label>
-      <select id="blockFilter"><option value="">-- All --</option></select>
-    </div>
-    <div>
-      <label>Floor:</label>
-      <select id="floorFilter"><option value="">-- All --</option></select>
-    </div>
-    <div>
-      <label>Flat:</label>
-      <input type="text" id="flatFilter" placeholder="e.g. 04" />
-    </div>
-    <div>
-      <label>Name:</label>
-      <input type="text" id="nameFilter" placeholder="Search name..." />
-    </div>
-    <div>
-      <label>Old Flat:</label>
-      <input type="text" id="oldFlatFilter" placeholder="e.g. B-22" />
-    </div>
-    <div>
-      <label>New Flat:</label>
-      <input type="text" id="newFlatFilter" placeholder="e.g. D-602" />
-    </div>
-    <div>
-      <button onclick="filterData()">🔍 Search</button>
-      <button class="reset-btn" onclick="resetFilters()">Reset</button>
-    </div>
-  </div>
+  <main class="shell">
+    <section class="filters" id="filters">
+      <div class="field short">
+        <label for="blockFilter">Block</label>
+        <select id="blockFilter">
+          <option value="">All Blocks</option>
+        </select>
+      </div>
+      <div class="field short">
+        <label for="floorFilter">Floor</label>
+        <select id="floorFilter">
+          <option value="">All Floors</option>
+        </select>
+      </div>
+      <div class="field short">
+        <label for="flatFilter">Flat</label>
+        <input id="flatFilter" placeholder="e.g. 04">
+      </div>
+      <div class="field">
+        <label for="nameFilter">Name</label>
+        <input id="nameFilter" placeholder="Search name...">
+      </div>
+      <div class="field">
+        <label for="oldFlatFilter">Old Flat</label>
+        <input id="oldFlatFilter" placeholder="e.g. B-22">
+      </div>
+      <div class="field">
+        <label for="newFlatFilter">New Flat</label>
+        <input id="newFlatFilter" placeholder="e.g. D-602">
+      </div>
+      <div class="actions">
+        <button class="btn" id="searchBtn" title="Search">
+          <span id="searchIcon">🔍</span>
+          <span>Search</span>
+        </button>
+        <button class="btn secondary" id="clearBtn" title="Reset">Reset</button>
+      </div>
+      <div class="summary" id="summary" style="grid-column: 1 / -1;">
+        <span class="chip" id="chip-block" style="display:none;"></span>
+        <span class="chip" id="chip-count" style="display:none;"></span>
+      </div>
+    </section>
 
-  <table id="resultTable">
-    <thead>
-      <tr>
-        <th>Sr_No</th>
-        <th>Block</th>
-        <th>Floor</th>
-        <th>Flat</th>
-        <th>Member Name</th>
-        <th>Old Flat No</th>
-        <th>New Flat No</th>
-      </tr>
-    </thead>
-    <tbody></tbody>
-  </table>
+    <section class="table-wrap">
+      <table id="resultTable" aria-label="Search results">
+        <thead>
+          <tr>
+            <th>Sr. No</th>
+            <th>Block</th>
+            <th>Floor</th>
+            <th>Flat</th>
+            <th>Member Name</th>
+            <th>Old Flat</th>
+            <th>New Flat</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
 
-  <p id="noData" style="display:none;">No matching records found.</p>
+      <!-- Mobile cards -->
+      <div class="cards" id="cards" style="display:none;"></div>
+
+      <div id="noData" class="empty" style="display:none;">No matching records found.</div>
+    </section>
+  </main>
+
+  <!-- Neighbour Drawer -->
+  <div class="overlay" id="overlay"></div>
+  <aside class="drawer" id="drawer">
+    <div class="head">
+      <h3>Neighbours</h3>
+      <button class="btn danger" id="closeDrawer" title="Close">Close</button>
+    </div>
+    <div class="list" id="drawerList"></div>
+  </aside>
 
   <script>
-    // --- Example sample data (replace with your full dataset JSON)
-       // --- Example sample data (replace with your full dataset JSON)
+    // ===================== DATA =====================
+    // Replace with your full dataset:
     const data = [
       {Sr_No:1,Block_No:1,Old_Flat_No:"B-25 ",Members_name:"Dineshkumar Jayantiprasad Merchant ",New_Flat_No:"C-403",Block:"C",Floor:4,Flat:"03"},
 {Sr_No:2,Block_No:1,Old_Flat_No:"B-26 ",Members_name:"Shilpaben Shaileshkumar Leuva ",New_Flat_No:"B-903",Block:"B",Floor:9,Flat:"03"},
@@ -328,87 +440,276 @@
       // Add full dataset here
     ];
 
-    const blockSelect = document.getElementById("blockFilter");
-    const floorSelect = document.getElementById("floorFilter");
+    // ===================== STATE =====================
+    const els = {
+      block: document.getElementById('blockFilter'),
+      floor: document.getElementById('floorFilter'),
+      flat: document.getElementById('flatFilter'),
+      name: document.getElementById('nameFilter'),
+      oldFlat: document.getElementById('oldFlatFilter'),
+      newFlat: document.getElementById('newFlatFilter'),
+      tableBody: document.querySelector('#resultTable tbody'),
+      cards: document.getElementById('cards'),
+      table: document.getElementById('resultTable'),
+      noData: document.getElementById('noData'),
+      searchBtn: document.getElementById('searchBtn'),
+      clearBtn: document.getElementById('clearBtn'),
+      chipBlock: document.getElementById('chip-block'),
+      chipCount: document.getElementById('chip-count'),
+      summary: document.getElementById('summary'),
+      drawer: document.getElementById('drawer'),
+      overlay: document.getElementById('overlay'),
+      drawerList: document.getElementById('drawerList'),
+      closeDrawer: document.getElementById('closeDrawer')
+    };
 
-    function populateFilters() {
-      [...new Set(data.map(d => d.Block))].sort().forEach(b => {
-        const opt = document.createElement("option");
-        opt.value = b;
-        opt.textContent = b;
-        blockSelect.appendChild(opt);
-      });
+    // ===================== INIT =====================
+    init();
 
-      [...new Set(data.map(d => d.Floor))].sort((a,b)=>a-b).forEach(f => {
-        const opt = document.createElement("option");
-        opt.value = f;
-        opt.textContent = f;
-        floorSelect.appendChild(opt);
-      });
+    function init(){
+      populateFiltersAll();
+      wireEvents();
+      displayData(data); // initial
+      updateChips(data);
     }
 
-    function displayData(rows) {
-      const tbody = document.querySelector("#resultTable tbody");
-      tbody.innerHTML = "";
-      document.getElementById("noData").style.display = rows.length ? "none" : "block";
-      rows.forEach(r => {
-        const tr = document.createElement("tr");
-        tr.innerHTML = `
-          <td>${r.Sr_No}</td>
-          <td>${r.Block}</td>
-          <td>${r.Floor}</td>
-          <td>${r.Flat}</td>
-          <td>${r.Members_name}</td>
-          <td>${r.Old_Flat_No}</td>
-          <td>${r.New_Flat_No}</td>
-        `;
-        tbody.appendChild(tr);
-      });
+    function populateFiltersAll(){
+      // Block options
+      const blocks = [...new Set(data.map(d => d.Block))].sort();
+      for (const b of blocks){
+        const opt = document.createElement('option');
+        opt.value = b; opt.textContent = b;
+        els.block.appendChild(opt);
+      }
+      // Floors = all unique to begin
+      populateFloorOptions(); // from current block selection (none)
     }
 
-    function filterData() {
-      const block = blockSelect.value;
-      const floor = floorSelect.value;
-      const flat = document.getElementById("flatFilter").value.trim();
-      const name = document.getElementById("nameFilter").value.trim().toLowerCase();
-      const oldFlat = document.getElementById("oldFlatFilter").value.trim().toLowerCase();
-      const newFlat = document.getElementById("newFlatFilter").value.trim().toLowerCase();
-
-      let filtered = data;
-      if (block) filtered = filtered.filter(d => d.Block === block);
-      if (floor) filtered = filtered.filter(d => d.Floor == floor);
-      if (flat) filtered = filtered.filter(d => d.Flat === flat);
-      if (name) filtered = filtered.filter(d => d.Members_name.toLowerCase().includes(name));
-      if (oldFlat) filtered = filtered.filter(d => d.Old_Flat_No.toLowerCase().includes(oldFlat));
-      if (newFlat) filtered = filtered.filter(d => d.New_Flat_No.toLowerCase().includes(newFlat));
-
-      displayData(filtered);
-
-      // If Block + Floor + Flat are all selected → show neighbours
-      if (block && floor && flat) {
-        const neighbours = data.filter(d => d.Block === block && d.Floor == floor && d.Flat !== flat);
-        if (neighbours.length > 0) {
-          alert(`👋 Neighbours on ${block}-${floor}:\n${neighbours.map(n => "• " + n.Members_name + " (" + n.Flat + ")").join("\n")}`);
-        } else {
-          alert("No neighbours found on this floor.");
-        }
+    function populateFloorOptions(){
+      const block = els.block.value;
+      const floors = [...new Set(
+        data
+          .filter(d => !block || d.Block === block)
+          .map(d => d.Floor)
+      )].sort((a,b)=>a-b);
+      els.floor.innerHTML = '<option value="">All Floors</option>';
+      for (const f of floors){
+        const opt = document.createElement('option');
+        opt.value = String(f); opt.textContent = f;
+        els.floor.appendChild(opt);
       }
     }
 
-    function resetFilters() {
-      blockSelect.value = "";
-      floorSelect.value = "";
-      document.getElementById("flatFilter").value = "";
-      document.getElementById("nameFilter").value = "";
-      document.getElementById("oldFlatFilter").value = "";
-      document.getElementById("newFlatFilter").value = "";
-      displayData(data);
+    function wireEvents(){
+      // Debounce typing inputs
+      const debounce = (fn, ms=220) => {
+        let t; return (...args)=>{ clearTimeout(t); t=setTimeout(()=>fn.apply(this,args),ms); }
+      };
+
+      els.block.addEventListener('change', ()=>{
+        // Narrow floors for selected block and auto filter
+        populateFloorOptions();
+        filterData(); // auto-show block results
+        scrollResultsIntoView();
+      });
+
+      els.floor.addEventListener('change', ()=>{ filterData(); scrollResultsIntoView(); });
+      els.flat.addEventListener('input', debounce(()=> filterData(), 200));
+      els.name.addEventListener('input', debounce(()=> filterData(), 200));
+      els.oldFlat.addEventListener('input', debounce(()=> filterData(), 200));
+      els.newFlat.addEventListener('input', debounce(()=> filterData(), 200));
+
+      els.searchBtn.addEventListener('click', handleSearchClick);
+      els.clearBtn.addEventListener('click', resetFilters);
+
+      // Drawer
+      els.overlay.addEventListener('click', closeDrawer);
+      els.closeDrawer.addEventListener('click', closeDrawer);
+      document.addEventListener('keydown', (e)=>{ if(e.key==='Escape') closeDrawer(); });
     }
 
-    populateFilters();
-    displayData(data);
-  </script>
+    function handleSearchClick(){
+      withSpinner(els.searchBtn, ()=> {
+        filterData();
+        scrollResultsIntoView();
+      }, 350);
+    }
 
+    function withSpinner(button, fn, minMs=400){
+      const iconSpan = document.getElementById('searchIcon');
+      const old = iconSpan.textContent;
+      iconSpan.innerHTML = '';
+      const sp = document.createElement('span');
+      sp.className = 'spinner';
+      iconSpan.appendChild(sp);
+      const t0 = performance.now();
+      const done = ()=> {
+        const dt = performance.now() - t0;
+        const delay = Math.max(0, minMs - dt);
+        setTimeout(()=>{ iconSpan.textContent = old; }, delay);
+      };
+      try{ fn(); } finally { done(); }
+    }
+
+    // ===================== FILTERING =====================
+    function getFilters(){
+      return {
+        block: els.block.value.trim(),
+        floor: els.floor.value.trim(),
+        flat: els.flat.value.trim(),
+        name: els.name.value.trim().toLowerCase(),
+        oldFlat: els.oldFlat.value.trim().toLowerCase(),
+        newFlat: els.newFlat.value.trim().toLowerCase()
+      };
+    }
+
+    function filterData(){
+      const {block, floor, flat, name, oldFlat, newFlat} = getFilters();
+      let rows = data.slice();
+
+      if (block) rows = rows.filter(d => d.Block === block);
+      if (floor) rows = rows.filter(d => String(d.Floor) === String(floor));
+      if (flat)  rows = rows.filter(d => String(d.Flat) === String(flat));
+      if (name)  rows = rows.filter(d => (d.Members_name||'').toLowerCase().includes(name));
+      if (oldFlat) rows = rows.filter(d => (d.Old_Flat_No||'').toLowerCase().includes(oldFlat));
+      if (newFlat) rows = rows.filter(d => (d.New_Flat_No||'').toLowerCase().includes(newFlat));
+
+      displayData(rows, { highlight: {name, oldFlat, newFlat} });
+      updateChips(rows, block);
+
+      // If Block + Floor + Flat chosen → show neighbours in drawer
+      if (block && floor && flat){
+        const neighbours = data.filter(d => d.Block === block && String(d.Floor) === String(floor) && String(d.Flat) !== String(flat));
+        if (neighbours.length) openDrawer(block, floor, neighbours);
+        else {
+          openDrawer(block, floor, [], 'No neighbours found on this floor.');
+        }
+      } else {
+        closeDrawer();
+      }
+      return rows;
+    }
+
+    // ===================== RENDER =====================
+    function updateChips(rows, block){
+      if (block){
+        els.chipBlock.style.display = '';
+        els.chipBlock.textContent = `Block ${block} results`;
+      } else {
+        els.chipBlock.style.display = 'none';
+      }
+      els.chipCount.style.display = '';
+      els.chipCount.textContent = `${rows.length} record${rows.length===1?'':'s'}`;
+    }
+
+    function displayData(rows, opts={}){
+      const {highlight = {}} = opts;
+      const {name, oldFlat, newFlat} = highlight;
+
+      // Desktop table
+      els.tableBody.innerHTML = '';
+      for (const r of rows){
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td class="muted">${safe(r.Sr_No)}</td>
+          <td><b>${safe(r.Block)}</b></td>
+          <td>${safe(r.Floor)}</td>
+          <td><span class="flat-badge">${safe(r.Flat)}</span></td>
+          <td>${mark(safe(r.Members_name||''), name)}</td>
+          <td class="muted">${mark(safe(r.Old_Flat_No||''), oldFlat)}</td>
+          <td class="muted">${mark(safe(r.New_Flat_No||''), newFlat)}</td>
+        `;
+        els.tableBody.appendChild(tr);
+      }
+
+      // Mobile cards
+      const isMobile = matchMedia('(max-width:760px)').matches;
+      els.cards.style.display = isMobile ? '' : 'none';
+      if (isMobile){
+        els.cards.innerHTML = '';
+        for (const r of rows){
+          const div = document.createElement('div');
+          div.className = 'card';
+          div.innerHTML = `
+            <div class="title">Block ${safe(r.Block)} • Floor ${safe(r.Floor)} • <span class="flat-badge">Flat ${safe(r.Flat)}</span></div>
+            <div class="grid">
+              <div class="k">Sr.</div><div>${safe(r.Sr_No)}</div>
+              <div class="k">Name</div><div>${mark(safe(r.Members_name||''), name)}</div>
+              <div class="k">Old</div><div>${mark(safe(r.Old_Flat_No||''), oldFlat)}</div>
+              <div class="k">New</div><div>${mark(safe(r.New_Flat_No||''), newFlat)}</div>
+            </div>
+          `;
+          els.cards.appendChild(div);
+        }
+      }
+
+      // Empty state
+      const has = rows.length > 0;
+      els.noData.style.display = has ? 'none' : '';
+      els.table.style.display = has && !matchMedia('(max-width:760px)').matches ? '' : 'none';
+    }
+
+    function openDrawer(block, floor, neighbours, emptyMsg){
+      els.drawerList.innerHTML = '';
+      if (neighbours.length){
+        neighbours.forEach(n=>{
+          const item = document.createElement('div');
+          item.className = 'item';
+          item.innerHTML = `
+            <div><b>${safe(n.Members_name||'')}</b></div>
+            <div>Flat <span class="flat-badge">${safe(n.Flat)}</span> • Block ${safe(n.Block)} • Floor ${safe(n.Floor)}</div>
+            <div class="muted">Old: ${safe(n.Old_Flat_No||'-')} &nbsp; | &nbsp; New: ${safe(n.New_Flat_No||'-')}</div>
+          `;
+          els.drawerList.appendChild(item);
+        });
+      } else {
+        const none = document.createElement('div');
+        none.className='empty';
+        none.textContent = emptyMsg || 'No neighbours to show.';
+        els.drawerList.appendChild(none);
+      }
+      els.overlay.classList.add('show');
+      els.drawer.classList.add('open');
+      // Focus trap lite: focus close button
+      setTimeout(()=> els.closeDrawer.focus(), 80);
+    }
+    function closeDrawer(){
+      els.overlay.classList.remove('show');
+      els.drawer.classList.remove('open');
+    }
+
+    function resetFilters(){
+      els.block.value = '';
+      populateFloorOptions();
+      els.floor.value = '';
+      els.flat.value = '';
+      els.name.value = '';
+      els.oldFlat.value = '';
+      els.newFlat.value = '';
+      closeDrawer();
+      displayData(data);
+      updateChips(data);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function scrollResultsIntoView(){
+      document.querySelector('.table-wrap').scrollIntoView({ behavior:'smooth', block:'start' });
+    }
+
+    // ===================== UTIL =====================
+    function safe(v){ return (v===0 || v) ? String(v).replace(/[&<>"']/g, s=>({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[s])) : ''; }
+    function mark(text, q){
+      if (!q) return text;
+      const idx = text.toLowerCase().indexOf(q.toLowerCase());
+      if (idx === -1) return text;
+      return text.slice(0, idx) + '<mark>' + text.slice(idx, idx+q.length) + '</mark>' + text.slice(idx+q.length);
+    }
+
+    // Kick off once DOM is ready—if data loads async, call these again.
+    document.addEventListener('DOMContentLoaded', ()=>{
+      // If you load data asynchronously, call:
+      // populateFiltersAll(); filterData();
+    });
+  </script>
 </body>
 </html>
-
